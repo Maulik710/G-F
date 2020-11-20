@@ -366,9 +366,11 @@ export function sendRadiusNotification(UserId) {
     }
   }
 }
-
+=============================******============================
 
  tabBarVisible:navigation.state.index == 1?false:true,
+   
+   https://stackoverflow.com/questions/51352081/react-navigation-how-to-hide-tabbar-from-inside-stack-navigation#:~:text=Select%20the%20stack%20in%20which,it%20based%20on%20the%20index.&text=This%20is%20the%20solution%20that,2%20routes%3A%20Home%20and%20Profile
 export default BaseClass;
 
 
