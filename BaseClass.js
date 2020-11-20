@@ -366,6 +366,9 @@ export function sendRadiusNotification(UserId) {
     }
   }
 }
+
+
+ tabBarVisible:navigation.state.index == 1?false:true,
 export default BaseClass;
 
 
