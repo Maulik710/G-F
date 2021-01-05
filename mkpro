@@ -1,0 +1,209 @@
+import React from 'react';
+import { StyleSheet, Text, View, StatusBar, FlatList, Dimensions, Animated, Image, findNodeHandle, TouchableOpacity } from 'react-native';
+
+const { width, height } = Dimensions.get('screen')
+
+const images = {
+  man:
+    'https://images.pexels.com/photos/3147528/pexels-photo-3147528.jpeg?auto=compress&cs=tinysrgb&dpr=2&w=500',
+  women:
+    'https://images.pexels.com/photos/2552130/pexels-photo-2552130.jpeg?auto=compress&cs=tinysrgb&dpr=2&w=500',
+  kids:
+    'https://images.pexels.com/photos/5080167/pexels-photo-5080167.jpeg?auto=compress&cs=tinysrgb&dpr=2&w=500',
+  skullcandy:
+    'https://images.pexels.com/photos/5602879/pexels-photo-5602879.jpeg?auto=compress&cs=tinysrgb&dpr=2&w=500',
+  help:
+    'https://images.pexels.com/photos/2552130/pexels-photo-2552130.jpeg?auto=compress&cs=tinysrgb&dpr=2&w=500',
+};
+
+const app_CenterData = []
+ 
+const data = Object.keys(images).map((i) => ({
+  key: i,
+  title: i,
+  image: images[i],
+  ref: React.createRef()
+}));
+
+const Tab = React.forwardRef(({ item, onItemPress }, ref) => {
+  return (
+    <TouchableOpacity onItemPress={onItemPress}>
+      <View ref={ref}>
+        <Text style={{ color: 'white', fontSize: 84 / data.length, fontWeight: '800', textTransform: 'uppercase' }}>{item.title}</Text>
+      </View>
+    </TouchableOpacity>
+  )
+})
+
+const Indicator = ({ measures, scrollX }) => {
+  const inputRange = data.map((_, i) => i * width);
+  const indicatorWidh = scrollX.interpolate({
+    inputRange,
+    outputRange:  measures.map((measure)=>measure.width) //[10, 0, 121, 153, 110]
+  })
+  const translateX = scrollX.interpolate({
+    inputRange,
+    outputRange:measures.map((measure) => measure.x)
+  })
+  return (
+    <Animated.View
+      style={{
+        position: 'absolute', height: 4, width:indicatorWidh, left: 0, backgroundColor: 'red', bottom: -10,
+        transform: [{
+          translateX
+        }]
+      }}
+    />
+  )
+}
+
+const Tabs = ({ data, scrollX, onItemPress }) => {
+  const [measures, setMeasures] = React.useState([]);
+  const containerRef = React.useRef();
+
+  React.useEffect(() => {
+    setTimeout(() => {
+        let m = [];
+        // console.log('inside tab..',data);
+    data.map((item) => {
+      item.ref.current.measureLayout(
+        containerRef.current,
+        (x, y, width, height) => {
+          m.push({
+            x, y, width, height
+          })
+          if (data.length == m.length) {
+            setMeasures(m)
+          }
+        }
+      )
+    })
+}, 1000);
+  },[])
+  console.log('=====>', measures)
+
+
+  return (
+    <View style={{ position: 'absolute', top: 100, width, }}>
+      <View ref={containerRef} style={{ justifyContent: 'space-evenly', flex: 1, flexDirection: 'row' }}>
+        {data.map((item, index) => {
+          return <Tab key={item.key} item={item} ref={item.ref} onItemPress={() => onItemPress(index)} />
+        })}
+      </View>
+      {measures.length > 0 &&
+        <Indicator measures={measures} scrollX={scrollX} />
+      }
+
+    </View>
+  )
+}
+
+export default function App() {
+  const scrollX = React.useRef(new Animated.Value(0)).current;
+  const ref = React.useRef()
+  const onItemPress = React.useCallback(itemIndex => {
+    ref?.current?.scrollToOffset({
+      offset: itemIndex * width
+    })
+  })
+
+
+  const [appCenterData, setAppCenterData] = React.useState([]);
+
+  React.useEffect(()=>{
+    fetch('http://vasundharaapps.com/artwork_apps/api/AdvertiseNewApplications/17/com.latest.status.message.text.jokes.funny')
+    .then((response) => response.json())
+    .then((responseJson) => {
+        let app_centerData= responseJson.app_center
+        // setAppCenterData(app_centerData)
+        setAppCenterData(Object.assign({},app_centerData))
+        // createHomeSectionList(responseJson.app_center)
+        console.log('convert array ok....',appCenterData);
+    })
+  }, [])
+
+
+console.log('========....=====>',appCenterData);
+
+
+//  const createHomeSectionList = async (rawData) => {
+//     var mapObject = {}
+//     await rawData.map((item) => {
+//         console.log("Item: ", item.name)
+//         if (item.name in mapObject) {
+//             var oldData = mapObject[item.name]
+//             oldData.push(item)
+//             mapObject[item.name] = oldData;
+//              console.log('Available')
+//         } else {
+//             var createNew = []
+//             createNew.push(item)
+//             mapObject[item.name] = createNew
+//         }
+//     })
+//     var allKeys = Object.keys(mapObject)
+//     var finalSections = []
+//     await allKeys.map((key) => {
+//         var menus = mapObject[key]
+//         var group = menus[0]
+//         var newJson = {
+//             group: group,
+//             menus: menus
+//         }
+//         finalSections.push(newJson)
+//     })
+//      console.log(JSON.stringify(finalSections))
+//      setAppCenterData(finalSections)
+// }
+
+
+  const appData = Object.keys(appCenterData).map((i,item) => ({
+     
+    key: i,
+    title:i,
+    // sub_Details:,
+    ref: React.createRef()
+  }));
+  console.log('======>>',appData);
+
+  return (
+    <View style={styles.container}>
+      <StatusBar hidden />
+      <Animated.FlatList
+        ref={ref}
+        data={data}
+        keyExtractor={item => item.key}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        pagingEnabled
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+          { useNativeDriver: false }
+        )}
+        bounces={false}
+        renderItem={({ item }) => {
+          return (
+            <View style={{ width, height }}>
+              <Image
+                style={{ flex: 1, resizeMode: 'cover' }}
+                source={{ uri: item.image }}
+              />
+              {/* <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0,0,0,0.3)' }]} /> */}
+            </View>
+          )
+        }}
+      />
+      <Tabs scrollX={scrollX} data={data} onItemPress={onItemPress} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
+
