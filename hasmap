@@ -1,0 +1,29 @@
+ createHomeSectionList = async (rawData) => {
+        var mapObject = {}
+        await rawData.map((item) => {
+            // console.log("Item: ", item.GroupCode)
+            if (item.GroupCode in mapObject) {
+                var oldData = mapObject[item.GroupCode]
+                oldData.push(item)
+                mapObject[item.GroupCode] = oldData;
+                // console.log('Available')
+            } else {
+                var createNew = []
+                createNew.push(item)
+                mapObject[item.GroupCode] = createNew
+            }
+        })
+        var allKeys = Object.keys(mapObject)
+        var finalSections = []
+        await allKeys.map((key) => {
+            var menus = mapObject[key]
+            var group = menus[0]
+            var newJson = {
+                group: group,
+                menus: menus
+            }
+            finalSections.push(newJson)
+        })
+        this.setState({ sectionList: finalSections })
+        // console.log(JSON.stringify(finalSections))
+    }
